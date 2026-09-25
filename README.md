@@ -16,6 +16,7 @@ Management Organizations (RFMOs).
 ## RFMOs Included
 - **[IATTC](https://www.iattc.org/en-us/Data/Public-domain)** – Inter-American Tropical Tuna Commission data
 - **[ICCAT](https://www.iccat.int/en/accesingdb.HTML)** – International Commission for the Conservation of Atlantic Tunas (task 2 data)
+- **[IOTC](https://iotc.org/data/datasets)** – Indian Ocean Tuna Commission data
 - **[WCPFC](https://www.wcpfc.int/public-domain-aggregated-catcheffort-data)** – Western and Central Pacific Fisheries Commission data
 
 ## Repository Structure
@@ -208,7 +209,79 @@ All standardizing scripts should be stored under `scripts/01_standardizing/<rfmo
 
 - ICCAT raw data must first be converted from `.mdb` to `.rds`.
 - ICCAT and WCPFC `lat` and `lon` variables must both be centered.
+- ICCAT `lat` and `lon` are reported for the corner of the cell nearest 0°/0°, with
+  `quad_id` carrying the hemisphere. The offset must therefore be applied *before* the
+  sign (`lat_sign * (lat + offset)`), so cells are centered away from the equator and
+  Greenwich, and the offset must be `2.5` for the 5°×5° longline data.
 - WCPFC effort in hooks needs to be converted to thousands of hooks (`effort_t_hooks`).
+- IOTC raw data is delivered as two long-format files, catch (`CA`) and effort (`EF`),
+  which must be joined. `scripts/01_standardizing/iotc_clean/prep_iotc_catch_effort.R`
+  reads both once and writes compact intermediates under `data/raw/iotc/`; the seven
+  cleaning scripts read those intermediates rather than the raw CSVs.
+
+##### IOTC specific notes
+
+- **Cells.** `FISHING_GROUND_CODE` is a CWP grid code, `[size][quadrant][lat 2][lon 3]`.
+  Size `5` is 1°×1° and size `6` is 5°×5°. As with ICCAT, the offset is applied before
+  the sign so cells are centered away from 0°/0°. Purse seine is reported at 1°×1° and
+  longline at 5°×5°, matching the resolutions used elsewhere in the project.
+
+- **Skipjack in longline data.** IOTC reports skipjack in its longline data, but IATTC,
+  ICCAT and WCPFC do not. `catch_skj` is dropped from the IOTC longline datasets so that
+  all longline datasets share identical variables. Skipjack is retained in the purse
+  seine datasets.
+
+- **Multi-month records.** 3,631 raw records span more than one month
+  (`MONTH_START != MONTH_END`), mostly longline strata reported as January–December
+  annual totals. These are dropped, mirroring the ICCAT `time_period_id < 13` filter, so
+  that the yearly datasets remain a straight aggregation of the monthly ones.
+
+- **Catch–effort join keys.** Catch and effort are stratified differently and are joined
+  on different keys by gear:
+  - *Longline* — school type is `UNCL` in both files and fishery and gear codes
+    correspond exactly, so the full stratum key is used.
+  - *Purse seine* — effort is largely reported undifferentiated (`PSOT`/`UNCL`) while
+    catch is split by school type (`PSLS`/`LS`, `PSFS`/`FS`). `FISHERY_CODE` and school
+    type are therefore dropped from the key. Joining on the full key would leave ~68% of
+    catch records with no effort, which is an artifact rather than missing data.
+
+- **Purse seine effort units.** IOTC reports purse seine effort in several units. Only
+  those matching the rest of the project are used: `SETS` becomes `effort_set` and
+  `FDAYS` (fishing days) becomes `effort_day`. `FHOURS`, `HOURS`, `STDHR`, `TRIPS` and
+  `DAYS` (days at sea) are not comparable and are left as `NA`. All catch records are
+  retained regardless.
+
+  | Units reported on the stratum | Catch records | Catch (mt) | Years | Effort retained |
+  |-------------------------------|---------------|------------|-------------|-----------------|
+  | `SETS`                        | 84,800 (19.7%)  | 2,425,454 (18.5%) | 2009–2025 | `effort_set` |
+  | `FDAYS`                       | 60,843 (14.1%)  | 1,681,839 (12.8%) | 1984–2025 | `effort_day` |
+  | `SETS` and `FDAYS`            | 2,207 (0.5%)    | 57,082 (0.4%)     | 2024–2025 | both |
+  | `FHOURS`, `HOURS`, `STDHR`    | 168,283 (39.1%) | 5,906,479 (45.1%) | 1981–2017 | none |
+  | `FHOURS`, `HOURS`             | 45,016 (10.5%)  | 1,660,094 (12.7%) | 1983–2000 | none |
+  | `FHOURS`                      | 42,518 (9.9%)   | 1,104,520 (8.4%)  | 1988–2020 | none |
+  | `DAYS`                        | 20,198 (4.7%)   | 240,161 (1.8%)    | 1985–2017 | none |
+  | `TRIPS`                       | 6,359 (1.5%)    | 31,208 (0.2%)     | 2014–2024 | none |
+
+  **Roughly two thirds of IOTC purse seine catch, almost all of it before 2009, therefore
+  has no effort reported.** Catch coverage is complete, but effort-based quantities such
+  as CPUE should not be computed from IOTC purse seine data for the earlier period.
+  `effort_set` is `NA` for 100% of pre-2009 records.
+
+- **Flag codes.** IOTC fleet codes are mostly ISO 3166-1 alpha-3 already. The exceptions
+  are mapped as follows:
+
+  | IOTC fleet code | `flag` | Reason |
+  |-----------------|--------|--------|
+  | `EUESP`, `EUFRA`, `EUPRT`, `EUITA`, `EUMYT` | `ESP`, `FRA`, `PRT`, `ITA`, `MYT` | EU member fleets, `EU` prefix removed |
+  | `GBRT` | `GBR` | UK territories fleet |
+  | `EUREU` | `NA` | Generic EU code, not a country |
+  | `NEIPS`, `NEIFR`, `NEISU`, `NEICE` | `NA` | Not elsewhere included, not a country |
+
+- **Missing values when aggregating.** `sum(x, na.rm = TRUE)` returns `0` when every
+  value in a group is missing, which would record "not reported" as "zero". Because large
+  stretches of IOTC purse seine effort are not reported, the IOTC scripts aggregate with
+  a `sum_or_na()` helper that returns `NA` for all-missing groups, consistent with the
+  general rule that missing values are stored as `NA`, not `0`.
 
 #### **Aggregating data to a specific resolution if it is not available**
 
@@ -252,8 +325,9 @@ and `detect_overlaps_purseseine`).
 - Organize datasets by temporal resolution to make the workflow easier to follow.
 
 ### 2. Filter to RFMOs that require overlap detection
-- Filter each dataset to include only the RFMOs that share an overlap boundary.
-  - *For the current workflow, you should only retain `wcpfc` and `iattc`.*
+- Overlap detection covers all RFMOs in the bound dataset. If a future workflow needs to
+  restrict it to a subset, filter each dataset to the RFMOs that share an overlap
+  boundary before detecting cells.
 
 ### 3. Detect overlapping cells
 - For each dataset, group observations by the spatial and temporal identifiers and identify
@@ -261,7 +335,7 @@ cells that are reported by both RFMOs.
 
 - **Yearly data:** group by `lat`, `lon`, and `year`.
 - **Monthly data:** group by `lat`, `lon`, `year`, and `month`.
-- Filter groups where `n_distinct(rfmo) == 2`, indicating that both RFMOs report
+- Filter groups where `n_distinct(rfmo) >= 2`, indicating that more than one RFMO reports
   data for the same cell and time period.
   
   
@@ -304,7 +378,9 @@ Records are retained according to the following hierarchy:
 1. Retain all records that do not occur in overlap cells.
 2. For overlap cells, retain the record with the highest reported total catch (`catch_tot`).
 3. If catch is unavailable for all records in the cell, retain the record with the highest reported effort (`effort_set`).
-4. If multiple records remain after these comparisons, retain the WCPFC record as the final tie-breaker (for current workflow).
+4. If multiple records remain after these comparisons, retain the record from the
+   highest priority RFMO. The priority order is `wcpfc` > `iattc` > `iotc` > `iccat`,
+   defined as `rfmo_priority` at the top of each harmonizing script.
 
 ### 5. Remove temporary variables
 - Remove the temporary columns created during the harmonization process (e.g., `overlap`, `max_catch`, and `max_effort`).
@@ -374,15 +450,15 @@ has not been determined. Stray blocks include:
 
 ## Harmonized datasets
 ##### File path under: [data/output](data/output)
-| Gear        | Spatial | Temporal | By flag | RFMOs Included      | Dataset                                 |
-|-------------|---------|----------|---------|---------------------|-----------------------------------------|
-| purse seine | 1°×1°   | month    | no      | IATTC, ICCAT, WCPFC | `allrfmo_month_1deg_purseseine.rds`     |
-| purse seine | 1°×1°   | year     | no      | IATTC, ICCAT, WCPFC | `allrfmo_year_1deg_purseseine.rds`      |
-| purse seine | 1°×1°   | year     | yes     | IATTC, ICCAT, WCPFC | `allrfmo_year_1deg_purseseine_flag.rds` |
-| longline    | 5°×5°   | month    | no      | IATTC, ICCAT, WCPFC | `allrfmo_month_5deg_longline.rds`       |
-| longline    | 5°×5°   | month    | yes     | IATTC, ICCAT, WCPFC | `allrfmo_month_5deg_longline_flag.rds`  |
-| longline    | 5°×5°   | year     | no      | IATTC, ICCAT, WCPFC | `allrfmo_year_5deg_longline.rds`        |
-| longline    | 5°×5°   | year     | yes     | IATTC, ICCAT, WCPFC | `allrfmo_year_5deg_longline_flag.rds`   |
+| Gear        | Spatial | Temporal | By flag | RFMOs Included            | Dataset                                 |
+|-------------|---------|----------|---------|---------------------------|-----------------------------------------|
+| purse seine | 1°×1°   | month    | no      | IATTC, ICCAT, IOTC, WCPFC | `allrfmo_month_1deg_purseseine.rds`     |
+| purse seine | 1°×1°   | year     | no      | IATTC, ICCAT, IOTC, WCPFC | `allrfmo_year_1deg_purseseine.rds`      |
+| purse seine | 1°×1°   | year     | yes     | IATTC, ICCAT, IOTC, WCPFC | `allrfmo_year_1deg_purseseine_flag.rds` |
+| longline    | 5°×5°   | month    | no      | IATTC, ICCAT, IOTC, WCPFC | `allrfmo_month_5deg_longline.rds`       |
+| longline    | 5°×5°   | month    | yes     | IATTC, ICCAT, IOTC, WCPFC | `allrfmo_month_5deg_longline_flag.rds`  |
+| longline    | 5°×5°   | year     | no      | IATTC, ICCAT, IOTC, WCPFC | `allrfmo_year_5deg_longline.rds`        |
+| longline    | 5°×5°   | year     | yes     | IATTC, ICCAT, IOTC, WCPFC | `allrfmo_year_5deg_longline_flag.rds`   |
 
 ## Cleaned catch and effort datasets by RFMO
 
@@ -409,6 +485,18 @@ has not been determined. Stray blocks include:
 | longline    | 5°×5°   | month    | yes     | `iccat_month_5deg_longline_flag.rds`  |
 | longline    | 5°×5°   | year     | no      | `iccat_year_5deg_longline.rds`        |
 | longline    | 5°×5°   | year     | yes     | `iccat_year_5deg_longline_flag.rds`   |
+
+### IOTC
+##### File path under: [data/processed/iotc](data/processed/iotc)
+| Gear        | Spatial | Temporal | By flag | Dataset                              |
+|-------------|---------|----------|---------|--------------------------------------|
+| purse seine | 1°×1°   | month    | no      | `iotc_month_1deg_purseseine.rds`     |
+| purse seine | 1°×1°   | year     | no      | `iotc_year_1deg_purseseine.rds`      |
+| purse seine | 1°×1°   | year     | yes     | `iotc_year_1deg_purseseine_flag.rds` |
+| longline    | 5°×5°   | month    | no      | `iotc_month_5deg_longline.rds`       |
+| longline    | 5°×5°   | month    | yes     | `iotc_month_5deg_longline_flag.rds`  |
+| longline    | 5°×5°   | year     | no      | `iotc_year_5deg_longline.rds`        |
+| longline    | 5°×5°   | year     | yes     | `iotc_year_5deg_longline_flag.rds`   |
 
 ### WCPFC
 ##### File path under: [data/processed/wcpfc](data/processed/wcpfc)
@@ -455,10 +543,17 @@ has not been determined. Stray blocks include:
 ##### Source: https://iotc.org/data/datasets
 ##### File path under: [data/raw/iotc](data/raw/iotc)
 
-| Gear                     | Spatial         | Temporal | Organized by | Measurement type | Species | Base path                                        | Dataset  | Metadata                                                                                                   |
-|--------------------------|-----------------|----------|--------------|------------------|---------|--------------------------------------------------|----------|------------------------------------------------------------------------------------------------------------|
-| Purse seine and longline | 1°×1° and 5°×5° | month    | catch        | -                | multi   | `month_multigear/IOTC-DATASETS-2025-10-13-CEALL` | `CA_RAW` | `iotc/IOTC-DATASETS-2025-10-13-CE-Reference_1950-2024/IOTC-DATASETS-2025-10-13-CE-Reference_1950-2024.csv` |
-| Purse seine and longline | 1°×1° and 5°×5° | month    | effort       | -                | multi   | `month_multigear/IOTC-DATASETS-2025-10-13-CEALL` | `EF_RAW` | `iotc/IOTC-DATASETS-2025-10-13-CE-Reference_1950-2024/IOTC-DATASETS-2025-10-13-CE-Reference_1950-2024.csv` |
+| Gear  | Spatial         | Temporal | Organized by | Measurement type      | Species | Base path                                 | Dataset                                     |
+|-------|-----------------|----------|--------------|-----------------------|---------|-------------------------------------------|---------------------------------------------|
+| multi | 1°×1° and 5°×5° | month    | catch        | metric tons and number of individuals | multi | `IOTC-DATASETS-2026-08-13-CE-1952-2025` | `IOTC-DATASETS-2026-08-13-CA-1952-2025.csv` |
+| multi | 1°×1° and 5°×5° | month    | effort       | multiple effort units | multi   | `IOTC-DATASETS-2026-08-13-CE-1952-2025` | `IOTC-DATASETS-2026-08-13-EF-1952-2025.csv` |
+
+Both files are long format and share the same stratum columns. Field definitions and
+code lists are published alongside the download at https://iotc.org/data/datasets.
+
+The two intermediates written by `prep_iotc_catch_effort.R`
+(`iotc_month_5deg_longline_prepped.rds` and `iotc_month_1deg_purseseine_prepped.rds`)
+are also stored in this folder. They are generated by the pipeline, not downloaded.
 
 ### WCPFC
 ##### Source: https://www.wcpfc.int/sustainability/scientific-data/wcpfc-public-domain-aggregated-catcheffort-data-download-page
