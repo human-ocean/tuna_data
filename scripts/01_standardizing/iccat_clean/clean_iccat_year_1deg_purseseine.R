@@ -32,8 +32,8 @@ center_iccat <- function(lat, lon, quad_id) {
   )
 
   tibble(
-    lat = lat_sign * lat + 0.5,
-    lon = lon_sign * lon + 0.5
+    lat = lat_sign * (lat + 0.5),
+    lon = lon_sign * (lon + 0.5)
   )
 }
 
