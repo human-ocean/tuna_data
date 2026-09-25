@@ -19,6 +19,7 @@ library(tidyverse)
 iattc_year  <- readRDS("data/processed/iattc/iattc_year_1deg_purseseine.rds")
 iccat_year  <- readRDS("data/processed/iccat/iccat_year_1deg_purseseine.rds")
 wcpfc_year  <- readRDS("data/processed/wcpfc/wcpfc_year_1deg_purseseine.rds")
+iotc_year   <- readRDS("data/processed/iotc/iotc_year_1deg_purseseine.rds")
 
 # PROCESSING ###################################################################
 
@@ -26,7 +27,8 @@ wcpfc_year  <- readRDS("data/processed/wcpfc/wcpfc_year_1deg_purseseine.rds")
 tuna_all_year <- bind_rows(
   iccat_year,
   iattc_year,
-  wcpfc_year
+  wcpfc_year,
+  iotc_year
 ) |>
   arrange(year)
 

@@ -5,7 +5,7 @@
 # Emily Rodriguez
 # ecr108@miami.edu
 #
-# This script defines overlapping cells between WCPFC and IATTC for longline
+# This script defines overlapping cells between any two or more RFMOs for longline
 # at the monthly, yearly, monthly flag, and yearly flag level, and exports
 # overlap-cell RDS files to be used in cleaning bound scripts.
 #
@@ -19,26 +19,22 @@ library(sf)
 
 # Load data --------------------------------------------------------------------
 # Yearly data (no flag)
-yearly_ll <- readRDS("data/processed/01_bound/allrfmo_year_5deg_longline.rds") |>
-  filter(rfmo %in% c("wcpfc", "iattc"))
+yearly_ll <- readRDS("data/processed/01_bound/allrfmo_year_5deg_longline.rds")
 
 # Monthly data (no flag)
-monthly_ll <- readRDS("data/processed/01_bound/allrfmo_month_5deg_longline.rds") |>
-  filter(rfmo %in% c("wcpfc", "iattc"))
+monthly_ll <- readRDS("data/processed/01_bound/allrfmo_month_5deg_longline.rds")
 
 # Yearly flag data
-yearly_flag_ll <- readRDS("data/processed/01_bound/allrfmo_year_5deg_longline_flag.rds") |>
-  filter(rfmo %in% c("wcpfc", "iattc"))
+yearly_flag_ll <- readRDS("data/processed/01_bound/allrfmo_year_5deg_longline_flag.rds")
 
 # Monthly flag data
-monthly_flag_ll <- readRDS("data/processed/01_bound/allrfmo_month_5deg_longline_flag.rds") |>
-  filter(rfmo %in% c("wcpfc", "iattc"))
+monthly_flag_ll <- readRDS("data/processed/01_bound/allrfmo_month_5deg_longline_flag.rds")
 
 # Find overlaps ----------------------------------------------------------------
 # Detect yearly overlaps (no flag)
 yearly_ll_overlap <- yearly_ll |>
   group_by(lat, lon, year) |>
-  filter(n_distinct(rfmo) == 2) |>
+  filter(n_distinct(rfmo) >= 2) |>
   ungroup()
 
 yearly_ll_overlap_summary <- yearly_ll_overlap |>
@@ -51,7 +47,7 @@ yearly_ll_overlap_summary <- yearly_ll_overlap |>
 # Detect monthly overlaps (no flag)
 monthly_ll_overlap <- monthly_ll |>
   group_by(lat, lon, year, month) |>
-  filter(n_distinct(rfmo) == 2) |>
+  filter(n_distinct(rfmo) >= 2) |>
   ungroup()
 
 monthly_ll_overlap_summary <- monthly_ll_overlap |>
@@ -64,7 +60,7 @@ monthly_ll_overlap_summary <- monthly_ll_overlap |>
 # Detect overlaps in yearly flag data
 yearly_flag_ll_overlap <- yearly_flag_ll |>
   group_by(lat, lon, year) |>
-  filter(n_distinct(rfmo) == 2) |>
+  filter(n_distinct(rfmo) >= 2) |>
   ungroup()
 
 yearly_flag_ll_overlap_summary <- yearly_flag_ll_overlap |>
@@ -77,7 +73,7 @@ yearly_flag_ll_overlap_summary <- yearly_flag_ll_overlap |>
 # Detect overlaps in monthly flag data
 monthly_flag_ll_overlap <- monthly_flag_ll |>
   group_by(lat, lon, year, month) |>
-  filter(n_distinct(rfmo) == 2) |>
+  filter(n_distinct(rfmo) >= 2) |>
   ungroup()
 
 monthly_flag_ll_overlap_summary <- monthly_flag_ll_overlap |>
