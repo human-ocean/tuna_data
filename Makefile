@@ -229,7 +229,7 @@ $(PROC_WCPFC)wcpfc_month_5deg_longline.rds: \
 
 # Month, flag
 $(PROC_WCPFC)wcpfc_month_5deg_longline_flag.rds: \
-	$(ST_WCPFC)clean_wcpfc_month_5deg_longline.R \
+	$(ST_WCPFC)clean_wcpfc_month_5deg_longline_flag.R \
 	$(RAW_WCPFC)month_5deg_longline_flag/month_5deg_longline_flag.csv
 	Rscript $<
 
@@ -299,7 +299,7 @@ $(DATA_BIND)allrfmo_month_5deg_longline.rds: \
 
 # Month, flag
 $(DATA_BIND)allrfmo_month_5deg_longline_flag.rds: \
-	$(PROC_BIND)bind_monthly_5deg_longline.R \
+	$(PROC_BIND)bind_monthly_5deg_longline_flag.R \
 	$(PROC_IATTC)iattc_month_5deg_longline_flag.rds \
 	$(PROC_ICCAT)iccat_month_5deg_longline_flag.rds \
 	$(PROC_WCPFC)wcpfc_month_5deg_longline_flag.rds
