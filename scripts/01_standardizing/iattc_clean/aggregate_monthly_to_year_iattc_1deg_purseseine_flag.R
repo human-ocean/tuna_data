@@ -46,7 +46,7 @@ ps_tuna_clean <- ps_tuna |>
   ) |>
   # Total catch across the three species (sums if NAs exist)
   mutate(
-    catch_tot = rowSums(across(c(catch_skj, catch_alb, catch_bet)), na.rm = TRUE)
+    catch_tot = rowSums(across(c(catch_skj, catch_alb, catch_bet, catch_yft)), na.rm = TRUE)
   ) |>
   # Remove all NA or all 0 species rows
   filter(
