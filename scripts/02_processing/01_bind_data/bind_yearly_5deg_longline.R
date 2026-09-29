@@ -21,6 +21,7 @@ iattc_clean <- readRDS("data/processed/iattc/iattc_year_5deg_longline.rds")
 iccat_clean <- readRDS("data/processed/iccat/iccat_year_5deg_longline.rds")
 wcpfc_clean <- readRDS("data/processed/wcpfc/wcpfc_year_5deg_longline_flag.rds") |>
   select(-flag)
+iotc_clean  <- readRDS("data/processed/iotc/iotc_year_5deg_longline.rds")
 
 # PROCESSING ###################################################################
 
@@ -29,7 +30,8 @@ wcpfc_clean <- readRDS("data/processed/wcpfc/wcpfc_year_5deg_longline_flag.rds")
 longline_all_year <- bind_rows(
   iccat_clean,
   iattc_clean,
-  wcpfc_clean
+  wcpfc_clean,
+  iotc_clean
 ) |>
   arrange(year)
 

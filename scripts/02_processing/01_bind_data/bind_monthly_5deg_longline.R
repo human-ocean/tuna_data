@@ -20,6 +20,7 @@ library(tidyverse)
 iattc_clean <- readRDS("data/processed/iattc/iattc_month_5deg_longline.rds")
 iccat_clean <- readRDS("data/processed/iccat/iccat_month_5deg_longline.rds")
 wcpfc_clean <- readRDS("data/processed/wcpfc/wcpfc_month_5deg_longline.rds")
+iotc_clean  <- readRDS("data/processed/iotc/iotc_month_5deg_longline.rds")
 
 # PROCESSING ###################################################################
 
@@ -28,7 +29,8 @@ wcpfc_clean <- readRDS("data/processed/wcpfc/wcpfc_month_5deg_longline.rds")
 longline_all_month <- bind_rows(
   iccat_clean,
   iattc_clean,
-  wcpfc_clean
+  wcpfc_clean,
+  iotc_clean
 ) |>
   arrange(year, month)
 
