@@ -6,10 +6,10 @@
 # ecr108@miami.edu
 #
 # This script harmonizes longline data from the bound dataset (IATTC,
-# ICCAT, and WCPFC) to resolve overlapping cells between IATTC and WCPFC.
-# The RFMO with higher catch and effort reported was kept. If the reporting was
-# the same the data from WCPFC was kept. Some overlaps may still exist between
-# IATTC and ICCAT.
+# ICCAT, IOTC, and WCPFC) to resolve overlapping cells between any two or more
+# RFMOs. The RFMO with higher catch and effort reported was kept. If the
+# reporting was the same, the record is kept following the priority order
+# WCPFC > IATTC > IOTC > ICCAT.
 #
 # The output is the final monthly harmonized monthly, 5x5 degree dataset with
 # flag data.
@@ -22,6 +22,10 @@
 library(tidyverse)
 library(sf)
 library(rnaturalearth)
+
+# RFMO priority for breaking ties in overlapping cells ------------------------
+# Used only when catch and effort cannot distinguish the overlapping records.
+rfmo_priority <- c("wcpfc", "iattc", "iotc", "iccat")
 
 # Load data --------------------------------------------------------------------
 
@@ -64,8 +68,8 @@ yearly_flag <- yearly_bound |>
       ( is.na(max_mt)  & !is.na(max_n) & catch_tot_n == max_n)
   ) |>
 
-  # If still tied, keep WCPFC
-  slice_max(rfmo == "wcpfc") |>
+  # If still tied, keep the highest priority RFMO
+  slice_min(match(rfmo, rfmo_priority), n = 1, with_ties = FALSE) |>
 
   ungroup() |>
   select(-overlap, -max_mt, -max_n)

@@ -20,6 +20,7 @@ library(tidyverse)
 iattc_clean <- readRDS("data/processed/iattc/iattc_month_1deg_purseseine.rds")
 iccat_clean <- readRDS("data/processed/iccat/iccat_month_1deg_purseseine.rds")
 wcpfc_clean <- readRDS("data/processed/wcpfc/wcpfc_month_1deg_purseseine.rds")
+iotc_clean  <- readRDS("data/processed/iotc/iotc_month_1deg_purseseine.rds")
 
 # PROCESSING ###################################################################
 
@@ -28,7 +29,8 @@ wcpfc_clean <- readRDS("data/processed/wcpfc/wcpfc_month_1deg_purseseine.rds")
 tuna_all_clean <- bind_rows(
   iccat_clean,
   iattc_clean,
-  wcpfc_clean) |>
+  wcpfc_clean,
+  iotc_clean) |>
     arrange(year, month)
 
 # EXPORT #######################################################################
