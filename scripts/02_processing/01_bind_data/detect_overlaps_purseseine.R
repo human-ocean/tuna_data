@@ -5,7 +5,7 @@
 # Emily Rodriguez
 # ecr108@miami.edu
 #
-# This script defines overlapping cells between WCPFC and IATTC at the monthly,
+# This script defines overlapping cells between any two or more RFMOs at the monthly,
 # yearly, and yearly flag level, visualizes them, and exports an RDS file of overlaps to be
 # used in cleaning bound scripts.
 #
@@ -19,22 +19,19 @@ library(sf)
 
 # Load data --------------------------------------------------------------------
 # Yearly data
-yearly <- readRDS("data/processed/01_bound/allrfmo_year_1deg_purseseine.rds") |>
-  filter(rfmo %in% c("wcpfc", "iattc"))
+yearly <- readRDS("data/processed/01_bound/allrfmo_year_1deg_purseseine.rds")
 
 # Monthly data
-monthly <- readRDS("data/processed/01_bound/allrfmo_month_1deg_purseseine.rds") |>
-  filter(rfmo %in% c("wcpfc", "iattc"))
+monthly <- readRDS("data/processed/01_bound/allrfmo_month_1deg_purseseine.rds")
 
-yearly_flag <- readRDS("data/processed/01_bound/allrfmo_year_1deg_purseseine_flag.rds") |>
-  filter(rfmo %in% c("wcpfc", "iattc"))
+yearly_flag <- readRDS("data/processed/01_bound/allrfmo_year_1deg_purseseine_flag.rds")
 
 
 # Find overlaps ----------------------------------------------------------------
 # Detect yearly overlaps
 yearly_overlap <- yearly |>
   group_by(lat, lon, year) |>
-  filter(n_distinct(rfmo) == 2) |>   # keep only cells where both RFMOs reported
+  filter(n_distinct(rfmo) >= 2) |>   # keep only cells reported by more than one RFMO
   ungroup()
 
 # Summary table of overlapping cells per year
@@ -45,7 +42,7 @@ yearly_overlap_summary <- yearly_overlap |>
 # Detect monthly overlaps
 monthly_overlap <- monthly |>
   group_by(lat, lon, year, month) |>
-  filter(n_distinct(rfmo) == 2) |>
+  filter(n_distinct(rfmo) >= 2) |>
   ungroup()
 
 # Summary table of monthly overlaps
@@ -56,7 +53,7 @@ monthly_overlap_summary <- monthly_overlap |>
 # Detect overlaps in yearly flag data
 yearly_flag_overlap <- yearly_flag |>
   group_by(lat, lon, year) |>
-  filter(n_distinct(rfmo) == 2) |>
+  filter(n_distinct(rfmo) >= 2) |>
   ungroup()
 
 # Summary table of yearly flag overlaps
