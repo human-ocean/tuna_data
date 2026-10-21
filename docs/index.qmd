@@ -1,6 +1,9 @@
 ---
-title: "Documentation"
-format: html
+title: "User Documentation for: _A harmonized global dataset of historical tuna catch and effort_"
+format:
+  html:
+    toc: true
+    toc-expand: 3
 ---
 
 ```{r}
@@ -13,16 +16,17 @@ library(tidyverse)
 library(mapview)
 library(cowplot)
 library(sf)
+library(here)
 
 ## Load data -------------------------------------------------------------------
 
-month_1deg_ps <- readRDS("../data/output/allrfmo_month_1deg_purseseine.rds")
-month_5deg_ll_flag <- readRDS("../data/output/allrfmo_month_5deg_longline_flag.rds")
-month_5deg_ll <- readRDS("../data/output/allrfmo_month_5deg_longline.rds")
-year_1deg_ps_flag <- readRDS("../data/output/allrfmo_year_1deg_purseseine_flag.rds")
-year_1deg_ps <- readRDS("../data/output/allrfmo_year_1deg_purseseine.rds")
-year_5deg_ll <- readRDS("../data/output/allrfmo_year_5deg_longline.rds")
-year_5deg_ll_flag <- readRDS("../data/output/allrfmo_year_5deg_longline_flag.rds")
+month_1deg_ps <- readRDS(here("data/output/allrfmo_month_1deg_purseseine.rds"))
+month_5deg_ll_flag <- readRDS(here("data/output/allrfmo_month_5deg_longline_flag.rds"))
+month_5deg_ll <- readRDS(here("data/output/allrfmo_month_5deg_longline.rds"))
+year_1deg_ps_flag <- readRDS(here("data/output/allrfmo_year_1deg_purseseine_flag.rds"))
+year_1deg_ps <- readRDS(here("data/output/allrfmo_year_1deg_purseseine.rds"))
+year_5deg_ll <- readRDS(here("data/output/allrfmo_year_5deg_longline.rds"))
+year_5deg_ll_flag <- readRDS(here("data/output/allrfmo_year_5deg_longline_flag.rds"))
 
 # Put datasets into a list ----------------------------------------------------
 
@@ -37,24 +41,24 @@ datasets <- list(
 )
 ```
 
+![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21494710.svg)
 
 ## How to cite:
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21494710.svg)](https://doi.org/10.5281/zenodo.21494710)
+Emily Rodriguez, & Juan Carlos Villaseñor-Derbez. (2026). A harmonized global dataset of historical tuna catch and effort. (Version v0.0.1) [Dataset]. Zenodo. https://doi.org/10.5281/zenodo.23477216
 
-Emily Rodriguez & Juan Carlos Villaseñor-Derbez. (2026). RFMO Tuna Catch and Effort Data (Version v0.0.0) [Dataset]. Zenodo. https://doi.org/10.5281/zenodo.21494710
-
-# Tuna RFMO Data User Guide
+# User Guide
 
 This document provides an overview for users utilizing the harmonized tuna RFMO datasets in this repository. It explains what data are available, how they are structured, and how to load data.
 
 ## What these data are
 
-This repository harmonizes publicly available catch and effort datasets from three major tuna Regional Fisheries Management Organizations (RFMOs):
+This repository harmonizes publicly available catch and effort datasets from four major tuna Regional Fisheries Management Organizations (RFMOs):
 
 - IATTC
 - ICCAT
 - WCPFC
+- IOTC
 
 Each RFMO publishes data in different formats, resolutions, and naming conventions. This repository standardizes them into a unified format so users can work with a single, consistent set of catch and effort datasets.
 
@@ -62,18 +66,18 @@ Each RFMO publishes data in different formats, resolutions, and naming conventio
 
 Files located under `data/output/`
 
-| Dataset                                 | Gear        | Spatial | Temporal | Temporal Coverage | Total Catch (mt) | By Flag | RFMOs Included      | Dataset                             | Formats        |
-|-----------------------------------------|-------------|---------|----------|-------------------|------------------|---------|---------------------|-------------------------------------|----------------|
-| `allrfmo_month_1deg_purseseine.rds`     | purse seine | 1°×1°   | month    | 1958-2024         | 64,848,155       | no      | IATTC, ICCAT, WCPFC | `allrfmo_month_1deg_purseseine`     | `.csv`, `.rds` |
-| `allrfmo_year_1deg_purseseine.rds`      | purse seine | 1°×1°   | year     | 1958-2024         | 67,807,604       | no      | IATTC, ICCAT, WCPFC | `allrfmo_year_1deg_purseseine`      | `.csv`, `.rds` |
-| `allrfmo_year_1deg_purseseine_flag.rds` | purse seine | 1°×1°   | year     | 1958-2024         | 54,633,092       | yes     | IATTC, ICCAT, WCPFC | `allrfmo_year_1deg_purseseine_flag` | `.csv`, `.rds` |
-| `allrfmo_month_5deg_longline.rds`       | longline    | 5°×5°   | month    | 1950-2024         | 14,527,054       | no      | IATTC, ICCAT, WCPFC | `allrfmo_month_5deg_longline`       | `.csv`, `.rds` |
-| `allrfmo_month_5deg_longline_flag.rds`  | longline    | 5°×5°   | month    | 1950-2024         | 13,113,173       | yes     | IATTC, ICCAT, WCPFC | `allrfmo_month_5deg_longline_flag`  | `.csv`, `.rds` |
-| `allrfmo_year_5deg_longline.rds`        | longline    | 5°×5°   | year     | 1951-2024         | 10,944,941       | no      | IATTC, ICCAT, WCPFC | `allrfmo_year_5deg_longline`        | `.csv`, `.rds` |
-| `allrfmo_year_5deg_longline_flag.rds`   | longline    | 5°×5°   | year     | 1951-2024         | 11,134,893       | yes     | IATTC, ICCAT, WCPFC | `allrfmo_year_5deg_longline_flag`   | `.csv`, `.rds` |
+| Dataset                                 | Gear        | Spatial | Temporal | Temporal Coverage | By Flag | Dataset                             | Formats        |
+|-----------------------------------------|-------------|---------|----------|-------------------|---------|-------------------------------------|----------------|
+| `allrfmo_month_1deg_purseseine.rds`     | purse seine | 1°×1°   | month    | 1958-2024         | no      | `allrfmo_month_1deg_purseseine`     | `.csv`, `.rds` |
+| `allrfmo_year_1deg_purseseine.rds`      | purse seine | 1°×1°   | year     | 1958-2024         | no      | `allrfmo_year_1deg_purseseine`      | `.csv`, `.rds` |
+| `allrfmo_year_1deg_purseseine_flag.rds` | purse seine | 1°×1°   | year     | 1958-2024         | yes     | `allrfmo_year_1deg_purseseine_flag` | `.csv`, `.rds` |
+| `allrfmo_month_5deg_longline.rds`       | longline    | 5°×5°   | month    | 1950-2024         | no      | `allrfmo_month_5deg_longline`       | `.csv`, `.rds` |
+| `allrfmo_month_5deg_longline_flag.rds`  | longline    | 5°×5°   | month    | 1950-2024         | yes     | `allrfmo_month_5deg_longline_flag`  | `.csv`, `.rds` |
+| `allrfmo_year_5deg_longline.rds`        | longline    | 5°×5°   | year     | 1951-2024         | no      | `allrfmo_year_5deg_longline`        | `.csv`, `.rds` |
+| `allrfmo_year_5deg_longline_flag.rds`   | longline    | 5°×5°   | year     | 1951-2024         | yes     | `allrfmo_year_5deg_longline_flag`   | `.csv`, `.rds` |
 
 
-### Additonal length data
+### Additional length data
 
 Files located under `data/output/`
 
@@ -118,6 +122,8 @@ Files located under `data/output/`
 #| echo: false
 #| warning: false
 #| message: false
+
+mapviewOptions(basemaps = "Esri.WorldGrayCanvas")
 
 # Add dataset names and combine
 spatial_coverage <- imap_dfr(datasets, function(x, name) {
@@ -179,7 +185,7 @@ head(tuna_data)
 
 ### Downloading `.csv` Data 
 
-`.rds` files are recommended for R users, but `.csv` files are also available for Excel users. 
+`.rds` files are recommended for R users, but `.csv` files are also available. 
 
 To download a `.csv` dataset to your computer:
 
@@ -254,6 +260,7 @@ ggplot(ps_ts,
     color = NULL
   )
 ```
+
 ### Longline catch time series
 ```{r}
 #| code-fold: true
