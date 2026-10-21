@@ -2,6 +2,7 @@
 title: "User Documentation for: _A harmonized global dataset of historical tuna catch and effort_"
 format:
   html:
+    theme: sandstone
     toc: true
     toc-expand: 3
 ---
@@ -41,7 +42,7 @@ datasets <- list(
 )
 ```
 
-![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21494710.svg)
+![](https://zenodo.org/badge/DOI/10.5281/zenodo.21494710.svg)
 
 ## How to cite:
 
