@@ -1,11 +1,9 @@
-# RFMO Tuna Catch and Effort Data
+# A harmonized global dataset of historical tuna catch and effort
+
+![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21494710.svg)
 
 ## How to cite:
-
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21494710.svg)](https://doi.org/10.5281/zenodo.21494710)
-
-Emily Rodriguez & Juan Carlos Villaseñor-Derbez. (2026). RFMO Tuna Catch and Effort Data (Version v0.0.0) [Dataset]. Zenodo. https://doi.org/10.5281/zenodo.21494710
-
+Emily Rodriguez, & Juan Carlos Villaseñor-Derbez. (2026). A harmonized global dataset of historical tuna catch and effort. (Version v0.0.1) [Dataset]. Zenodo. https://doi.org/10.5281/zenodo.23477216
 
 
 ## Overview
