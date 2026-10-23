@@ -32,13 +32,13 @@ year_5deg_ll_flag <- readRDS(here("data/output/allrfmo_year_5deg_longline_flag.r
 # Put datasets into a list ----------------------------------------------------
 
 datasets <- list(
-  month_1deg_ps = month_1deg_ps,
-  month_5deg_ll_flag = month_5deg_ll_flag,
-  month_5deg_ll = month_5deg_ll,
-  year_1deg_ps_flag = year_1deg_ps_flag,
-  year_1deg_ps = year_1deg_ps,
-  year_5deg_ll = year_5deg_ll,
-  year_5deg_ll_flag = year_5deg_ll_flag
+  allrfmo_month_1deg_purseseine = month_1deg_ps,
+  allrfmo_month_5deg_longline_flag = month_5deg_ll_flag,
+  allrfmo_month_5deg_longline = month_5deg_ll,
+  allrfmo_year_1deg_purseseine_flag = year_1deg_ps_flag,
+  allrfmo_year_1deg_purseseine = year_1deg_ps,
+  allrfmo_year_5deg_longline = year_5deg_ll,
+  allrfmo_year_5deg_longline_flag = year_5deg_ll_flag
 )
 ```
 
@@ -67,24 +67,16 @@ Each RFMO publishes data in different formats, resolutions, and naming conventio
 
 Files located under `data/output/`
 
-| Dataset                                 | Gear        | Spatial | Temporal | Temporal Coverage | By Flag | Dataset                             | Formats        |
-|-----------------------------------------|-------------|---------|----------|-------------------|---------|-------------------------------------|----------------|
-| `allrfmo_month_1deg_purseseine.rds`     | purse seine | 1°×1°   | month    | 1958-2024         | no      | `allrfmo_month_1deg_purseseine`     | `.csv`, `.rds` |
-| `allrfmo_year_1deg_purseseine.rds`      | purse seine | 1°×1°   | year     | 1958-2024         | no      | `allrfmo_year_1deg_purseseine`      | `.csv`, `.rds` |
-| `allrfmo_year_1deg_purseseine_flag.rds` | purse seine | 1°×1°   | year     | 1958-2024         | yes     | `allrfmo_year_1deg_purseseine_flag` | `.csv`, `.rds` |
-| `allrfmo_month_5deg_longline.rds`       | longline    | 5°×5°   | month    | 1950-2024         | no      | `allrfmo_month_5deg_longline`       | `.csv`, `.rds` |
-| `allrfmo_month_5deg_longline_flag.rds`  | longline    | 5°×5°   | month    | 1950-2024         | yes     | `allrfmo_month_5deg_longline_flag`  | `.csv`, `.rds` |
-| `allrfmo_year_5deg_longline.rds`        | longline    | 5°×5°   | year     | 1951-2024         | no      | `allrfmo_year_5deg_longline`        | `.csv`, `.rds` |
-| `allrfmo_year_5deg_longline_flag.rds`   | longline    | 5°×5°   | year     | 1951-2024         | yes     | `allrfmo_year_5deg_longline_flag`   | `.csv`, `.rds` |
+| Dataset                             | Gear        | Spatial Resolution | Temporal Resolution | By Flag | Formats        |
+|-------------------------------------|-------------|--------------------|---------------------|---------|----------------|
+| `allrfmo_month_1deg_purseseine`     | purse seine | 1°×1°              | month               | no      | `.csv`, `.rds` |
+| `allrfmo_year_1deg_purseseine`      | purse seine | 1°×1°              | year                | no      | `.csv`, `.rds` |
+| `allrfmo_year_1deg_purseseine_flag` | purse seine | 1°×1°              | year                | yes     | `.csv`, `.rds` |
+| `allrfmo_month_5deg_longline`       | longline    | 5°×5°              | month               | no      | `.csv`, `.rds` |
+| `allrfmo_month_5deg_longline_flag`  | longline    | 5°×5°              | month               | yes     | `.csv`, `.rds` |
+| `allrfmo_year_5deg_longline`        | longline    | 5°×5°              | year                | no      | `.csv`, `.rds` |
+| `allrfmo_year_5deg_longline_flag`   | longline    | 5°×5°              | year                | yes     | `.csv`, `.rds` |
 
-
-### Additional length data
-
-Files located under `data/output/`
-
-| Dataset             | Gear  | Spatial | Temporal | Temporal Coverage | By Flag | RMFOs Included | Formats |
-|---------------------|-------|---------|----------|-------------------|---------|----------------|---------|
-| `wcpfc_length_data` | multi | 5°×5°   | multi    | 1953-2025         | no      | WCPFC          | `.rds`  |
 
 ## Available variables for catch and effort data
 
@@ -107,15 +99,19 @@ Files located under `data/output/`
 | `catch_bet`      | Catch of bigeye tuna (mt)                                    |
 | `catch_yft`      | Catch of yellowfin tuna (mt)                                 |
 
-## Additional variables specific to length datasets
+## Temporal coverage
 
-| Variables    | Description                                                  |
-|--------------|--------------------------------------------------------------|
-| `tstrat`     | Temporal stratification                                      |
-| `gear`       | Gear type                                                    |
-| `species`    | Tuna species                                                 |
-| `length_cm`  | Fish length in centimeters                                   |
-| `length_bin` | Length class/bin in cm based on interval (e.g., 1,2 cm bins) |
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+map_dfr(datasets, nrow, .id = "src") |> 
+  pivot_longer(cols = everything()) |> 
+  rename(source = name, n_row = value) |> 
+  mutate(source = paste("`", source, "`")) |> 
+  knitr::kable(col.names = c("Dataset", "# Records"))
+```
 
 ## Spatial coverage
 
@@ -161,6 +157,26 @@ datasets <- mapview(
 
 datasets
 ```
+
+
+### Additional length data
+
+Files located under `data/output/`
+
+| Dataset             | Gear  | Spatial | Temporal | Temporal Coverage | By Flag | RMFOs Included | Formats |
+|---------------------|-------|---------|----------|-------------------|---------|----------------|---------|
+| `wcpfc_length_data` | multi | 5°×5°   | multi    | 1953-2025         | no      | WCPFC          | `.rds`  |
+
+
+## Additional variables specific to length datasets
+
+| Variables    | Description                                                  |
+|--------------|--------------------------------------------------------------|
+| `tstrat`     | Temporal stratification                                      |
+| `gear`       | Gear type                                                    |
+| `species`    | Tuna species                                                 |
+| `length_cm`  | Fish length in centimeters                                   |
+| `length_bin` | Length class/bin in cm based on interval (e.g., 1,2 cm bins) |
 
 
 ## Downloading `.rds` data in R
